@@ -16,10 +16,15 @@
     anchorToPoint:          false,
     appendToBody:           false,
     class:                  undefined,
-    pointClass:             'ct-point'
+    pointClass:             'ct-point',
+    getTooltipClass:        null,
   };
 
   Chartist.plugins         = Chartist.plugins || {};
+  function getTooltipClass (options) {
+    return (!options.class) ? 'chartist-tooltip' : 'chartist-tooltip ' + options.class;
+  }
+
   Chartist.plugins.tooltip = function (options) {
     options = Chartist.extend({}, defaultOptions, options);
 
@@ -38,15 +43,18 @@
 
       var $chart   = chart.container;
       var $toolTip = $chart.querySelector('.chartist-tooltip');
+
       if (!$toolTip) {
         $toolTip           = document.createElement('div');
-        $toolTip.className = (!options.class) ? 'chartist-tooltip' : 'chartist-tooltip ' + options.class;
+        $toolTip.className = getTooltipClass(options);
+
         if (!options.appendToBody) {
           $chart.appendChild($toolTip);
         } else {
           document.body.appendChild($toolTip);
         }
       }
+
       var height = $toolTip.offsetHeight;
       var width  = $toolTip.offsetWidth;
 
@@ -71,13 +79,22 @@
 
         const xtra = {$point, seriesName}
 
+        $toolTip.className = getTooltipClass(options)
+
+        if (options.getTooltipClass && typeof options.getTooltipClass === 'function') {
+          var xtraClass = options.getTooltipClass(meta, value, xtra)
+          $toolTip.className += ' ' + xtraClass
+        }
+
         if (options.transformTooltipTextFnc && typeof options.transformTooltipTextFnc === 'function') {
           value = options.transformTooltipTextFnc(value, xtra);
         }
 
         if (options.tooltipFnc && typeof options.tooltipFnc === 'function') {
           tooltipText = options.tooltipFnc(meta, value, xtra);
-        } else {
+        }
+
+        else {
           if (options.metaIsHTML) {
             var txt       = document.createElement('textarea');
             txt.innerHTML = meta;
@@ -88,7 +105,8 @@
 
           if (hasMeta) {
             tooltipText += meta + '<br>';
-          } else {
+          }
+          else {
             // For Pie Charts also take the labels into account
             // Could add support for more charts here as well!
             if (chart instanceof Chartist.Pie) {
