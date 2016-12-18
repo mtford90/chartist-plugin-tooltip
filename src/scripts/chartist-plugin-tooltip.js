@@ -77,7 +77,7 @@
         var hasMeta    = !!meta;
         var value      = $point.getAttribute('ct:value');
 
-        const xtra = {$point, seriesName}
+        const xtra = {point: $point, seriesName: seriesName}
 
         $toolTip.className = getTooltipClass(options)
 
