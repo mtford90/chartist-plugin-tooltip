@@ -7,23 +7,23 @@
   'use strict';
 
   var defaultOptions = {
-    currency: undefined,
+    currency:               undefined,
     currencyFormatCallback: undefined,
-    tooltipOffset: {
+    tooltipOffset:          {
       x: 0,
       y: -20
     },
-    anchorToPoint: false,
-    appendToBody: false,
-    class: undefined,
-    pointClass: 'ct-point'
+    anchorToPoint:          false,
+    appendToBody:           false,
+    class:                  undefined,
+    pointClass:             'ct-point'
   };
 
-  Chartist.plugins = Chartist.plugins || {};
+  Chartist.plugins         = Chartist.plugins || {};
   Chartist.plugins.tooltip = function (options) {
     options = Chartist.extend({}, defaultOptions, options);
 
-    return function tooltip(chart) {
+    return function tooltip (chart) {
       var tooltipSelector = options.pointClass;
       if (chart instanceof Chartist.Bar) {
         tooltipSelector = 'ct-bar';
@@ -36,10 +36,10 @@
         }
       }
 
-      var $chart = chart.container;
+      var $chart   = chart.container;
       var $toolTip = $chart.querySelector('.chartist-tooltip');
       if (!$toolTip) {
-        $toolTip = document.createElement('div');
+        $toolTip           = document.createElement('div');
         $toolTip.className = (!options.class) ? 'chartist-tooltip' : 'chartist-tooltip ' + options.class;
         if (!options.appendToBody) {
           $chart.appendChild($toolTip);
@@ -48,11 +48,11 @@
         }
       }
       var height = $toolTip.offsetHeight;
-      var width = $toolTip.offsetWidth;
+      var width  = $toolTip.offsetWidth;
 
       hide($toolTip);
 
-      function on(event, selector, callback) {
+      function on (event, selector, callback) {
         $chart.addEventListener(event, function (e) {
           if (!selector || hasClass(e.target, selector))
             callback(e);
@@ -60,26 +60,28 @@
       }
 
       on('mouseover', tooltipSelector, function (event) {
-        var $point = event.target;
+        var $point      = event.target;
         var tooltipText = '';
 
         var isPieChart = (chart instanceof Chartist.Pie) ? $point : $point.parentNode;
         var seriesName = (isPieChart) ? $point.parentNode.getAttribute('ct:meta') || $point.parentNode.getAttribute('ct:series-name') : '';
-        var meta = $point.getAttribute('ct:meta') || seriesName || '';
-        var hasMeta = !!meta;
-        var value = $point.getAttribute('ct:value');
+        var meta       = $point.getAttribute('ct:meta') || seriesName || '';
+        var hasMeta    = !!meta;
+        var value      = $point.getAttribute('ct:value');
+
+        const xtra = {$point, seriesName}
 
         if (options.transformTooltipTextFnc && typeof options.transformTooltipTextFnc === 'function') {
-          value = options.transformTooltipTextFnc(value);
+          value = options.transformTooltipTextFnc(value, xtra);
         }
 
         if (options.tooltipFnc && typeof options.tooltipFnc === 'function') {
-          tooltipText = options.tooltipFnc(meta, value);
+          tooltipText = options.tooltipFnc(meta, value, xtra);
         } else {
           if (options.metaIsHTML) {
-            var txt = document.createElement('textarea');
+            var txt       = document.createElement('textarea');
             txt.innerHTML = meta;
-            meta = txt.value;
+            meta          = txt.value;
           }
 
           meta = '<span class="chartist-tooltip-meta">' + meta + '</span>';
@@ -110,14 +112,14 @@
           }
         }
 
-        if(tooltipText) {
+        if (tooltipText) {
           $toolTip.innerHTML = tooltipText;
           setPosition(event);
           show($toolTip);
 
           // Remember height and width to avoid wrong position in IE
           height = $toolTip.offsetHeight;
-          width = $toolTip.offsetWidth;
+          width  = $toolTip.offsetWidth;
         }
       });
 
@@ -130,57 +132,57 @@
           setPosition(event);
       });
 
-      function setPosition(event) {
-        height = height || $toolTip.offsetHeight;
-        width = width || $toolTip.offsetWidth;
-        var offsetX = - width / 2 + options.tooltipOffset.x
-        var offsetY = - height + options.tooltipOffset.y;
+      function setPosition (event) {
+        height      = height || $toolTip.offsetHeight;
+        width       = width || $toolTip.offsetWidth;
+        var offsetX = -width / 2 + options.tooltipOffset.x
+        var offsetY = -height + options.tooltipOffset.y;
         var anchorX, anchorY;
 
         if (!options.appendToBody) {
-          var box = $chart.getBoundingClientRect();
-          var left = event.pageX - box.left - window.pageXOffset ;
-          var top = event.pageY - box.top - window.pageYOffset ;
+          var box  = $chart.getBoundingClientRect();
+          var left = event.pageX - box.left - window.pageXOffset;
+          var top  = event.pageY - box.top - window.pageYOffset;
 
           if (true === options.anchorToPoint && event.target.x2 && event.target.y2) {
             anchorX = parseInt(event.target.x2.baseVal.value);
             anchorY = parseInt(event.target.y2.baseVal.value);
           }
 
-          $toolTip.style.top = (anchorY || top) + offsetY + 'px';
+          $toolTip.style.top  = (anchorY || top) + offsetY + 'px';
           $toolTip.style.left = (anchorX || left) + offsetX + 'px';
         } else {
-          $toolTip.style.top = event.pageY + offsetY + 'px';
+          $toolTip.style.top  = event.pageY + offsetY + 'px';
           $toolTip.style.left = event.pageX + offsetX + 'px';
         }
       }
     }
   };
 
-  function show(element) {
-    if(!hasClass(element, 'tooltip-show')) {
+  function show (element) {
+    if (!hasClass(element, 'tooltip-show')) {
       element.className = element.className + ' tooltip-show';
     }
   }
 
-  function hide(element) {
-    var regex = new RegExp('tooltip-show' + '\\s*', 'gi');
+  function hide (element) {
+    var regex         = new RegExp('tooltip-show' + '\\s*', 'gi');
     element.className = element.className.replace(regex, '').trim();
   }
 
-  function hasClass(element, className) {
+  function hasClass (element, className) {
     return (' ' + element.getAttribute('class') + ' ').indexOf(' ' + className + ' ') > -1;
   }
 
-  function next(element, className) {
+  function next (element, className) {
     do {
       element = element.nextSibling;
     } while (element && !hasClass(element, className));
     return element;
   }
 
-  function text(element) {
+  function text (element) {
     return element.innerText || element.textContent;
   }
 
-} (window, document, Chartist));
+}(window, document, Chartist));
